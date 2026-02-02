@@ -31,9 +31,15 @@ const productSchema = new mongoose.Schema(
       required: true
     },
 
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+
     stock: {
       type: Number,
-      default: 0
+      default: 1
     },
 
     images: [
@@ -45,9 +51,15 @@ const productSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Product", productSchema);
+const Product = mongoose.model("Product", productSchema);
+
+export default Product

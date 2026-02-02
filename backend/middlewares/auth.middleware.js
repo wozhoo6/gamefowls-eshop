@@ -30,3 +30,8 @@ export const adminRoute = async (req, res, next) =>{
     if(req.user && req.user.role === 'admin') next()
         else return res.status(403).json({message: 'Requires admin account'})
 }
+
+export const sellerRouter = async (req, res, next) => {
+    if(req.user && req.user.role === 'seller') next()
+        else return res.status(403).json({message: 'Requires seller account'})
+}

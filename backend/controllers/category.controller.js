@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
 import Category from "../models/category.model.js";
+import Product from "../models/product.model.js";
+import { redis } from "../lib/redis.js";
 
 // Delete all child categories recursively
 const deleteChildren = async (parentId) => {
     const children = await Category.find({ parentId });
     for (const child of children) {
         await deleteChildren(child._id); // recursive deletion
+        await disableProduct(child._id); // disable the product for this category
         await Category.findByIdAndDelete(child._id);
     }
 };
@@ -17,13 +20,23 @@ const updateChildrenStatus = async (parentId, isActive) => {
         await Category.findByIdAndUpdate(child._id, { isActive });
     }
 }
+
+const disableProducts = async (categoryId) => {
+    await Product.updateMany(
+        { categoryId },
+        { isActive: false }
+    )
+}
+
 export const createCategory = async (req, res, next) => {
     try {
         const { parentId, name } = req.body
 
-        const parentExists = await Category.findById(parentId)
+        if (parentId) {
+            const parentExists = await Category.findById(parentId)
+            if (!parentExists) return res.status(404).json({ success: false, message: 'Parent category does not exist' })
+        }
 
-        if (!parentExists) return res.status(404).json({ success: false, message: 'Parent category does not exist' })
 
         //create slug from the category name
         const slug = name.toLowerCase()
@@ -34,6 +47,8 @@ export const createCategory = async (req, res, next) => {
 
         const newCategory = await Category.create({ name, slug, parentId })
 
+        await redis.del("categories:tree");
+
         res.send({ data: newCategory, success: true })
     } catch (error) {
         next(error)
@@ -43,6 +58,16 @@ export const createCategory = async (req, res, next) => {
 
 export const getCategories = async (req, res, next) => {
     try {
+        const cached = await redis.get("categories:tree");
+
+        if (cached) {
+            return res.json({
+                success: true,
+                data: JSON.parse(cached),
+                cached: true
+            });
+        }
+
         const categories = await Category.find().lean()
 
         const categoryMap = {}
@@ -52,7 +77,6 @@ export const getCategories = async (req, res, next) => {
             categoryMap[category._id] = { ...category, children: [] }
         })
 
-        console.log(categoryMap)
 
         categories.forEach(category => {
             if (category.parentId) {
@@ -62,12 +86,22 @@ export const getCategories = async (req, res, next) => {
             }
         })
 
-        res.send({ data: processed })
+        await redis.set(
+            "categories:tree",
+            JSON.stringify(processed),
+            "EX",
+            600
+        );
+
+        res.status(200).json({
+            success: true,
+            data: processed,
+            cached: false,
+        });
     } catch (error) {
         next(error)
     }
 }
-
 
 
 
@@ -82,9 +116,11 @@ export const updateCategoryStatus = async (req, res, next) => {
         if (!updatedCategory) return res.status(404).json({ success: false, message: 'Category does not exist' })
 
         await updateChildrenStatus(updatedCategory._id, isActive)
+
+        await redis.del("categories:tree");
         res.status(200).json({
             success: true,
-            data:updatedCategory
+            data: updatedCategory
         });
     } catch (error) {
         console.error(error.message)
@@ -92,13 +128,19 @@ export const updateCategoryStatus = async (req, res, next) => {
     }
 }
 
+
 export const deleteCategory = async (req, res, next) => {
     try {
         const categoryId = req.params.id;
 
         await deleteChildren(categoryId);
+        await disableProducts(categoryId)
+
 
         const deletedCategory = await Category.findByIdAndDelete(req.params.id);
+
+        await redis.del("categories:tree");
+
 
         if (!deletedCategory) {
             return res.status(404).json({ message: "Category not found" });

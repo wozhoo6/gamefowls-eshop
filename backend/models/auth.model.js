@@ -19,11 +19,17 @@ const userSchema = new mongoose.Schema(
 			required: [true, "Password is required"],
 			minlength: [6, "Password must be at least 6 characters long"],
 		},
-        address: {
-            type: String,
-            trim: true,
-            default: ''
-        },
+		address: {
+			type: String,
+			trim: true,
+			default: ''
+		},
+
+		contactNumber: {
+			type: Number,
+			required: [true, "Contact number is required"],
+			unique: true
+		},
 		cartItems: [
 			{
 				quantity: {
@@ -38,7 +44,7 @@ const userSchema = new mongoose.Schema(
 		],
 		role: {
 			type: String,
-			enum: ["customer", "admin"],
+			enum: ["customer", "admin", "seller"],
 			default: "customer",
 		},
 	},
@@ -48,16 +54,16 @@ const userSchema = new mongoose.Schema(
 );
 
 //pre save hook for hashing password
-userSchema.pre('save', async function() {
-    if(!this.isModified('password')) return
+userSchema.pre('save', async function () {
+	if (!this.isModified('password')) return
 
-    const salt = await bcrypt.genSalt(10)
-    this.password = await bcrypt.hash(this.password, salt)
+	const salt = await bcrypt.genSalt(10)
+	this.password = await bcrypt.hash(this.password, salt)
 })
 
 
 userSchema.methods.comparePassword = async function (password) {
-    return bcrypt.compare(password, this.password)
+	return bcrypt.compare(password, this.password)
 }
 
 const User = mongoose.model("User", userSchema);

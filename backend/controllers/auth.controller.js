@@ -43,13 +43,13 @@ const setCookies = async (res, accessToken, refreshToken) => {
 
 export const signup = async (req, res, next) => {
     try {
-        const { name, email, password } = req.body
+        const { name, email, password, contactNumber } = req.body
 
         const userExists = await User.findOne({ email })
-    
+
         if (userExists) return res.status(409).json({ message: 'User already exists' })
 
-        const newUser = await User.create({ email, password, name })
+        const newUser = await User.create({ email, password, name, contactNumber })
 
         const { accessToken, refreshToken } = generateToken(newUser._id)
 
@@ -146,5 +146,14 @@ export const refreshAccessToken = async (req, res, next) => {
     } catch (error) {
         console.error(error.message)
         next(error)
+    }
+}
+
+
+export const getUserProfile = async (req, res, next) => {
+    try {
+        res.json({ data: req.user })
+    } catch (error) {
+       next(error)
     }
 }
