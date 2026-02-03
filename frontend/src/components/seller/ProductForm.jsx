@@ -1,5 +1,4 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
 
 export default function ProductForm({
   categories,
@@ -24,7 +23,7 @@ export default function ProductForm({
         }
         required
       >
-            {categories.map((cat) => (
+        {categories.map((cat) => (
           <option key={cat._id} value={cat._id}>
             {cat.displayName || cat.name}
           </option>
@@ -41,16 +40,16 @@ export default function ProductForm({
         }
       />
 
-      <input
+      <textarea
         required
         placeholder="Product Description"
-        className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2"
+        rows={4}
+        className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 resize-none md:col-span-4"
         value={formData.description}
         onChange={(e) =>
           setFormData({ ...formData, description: e.target.value })
         }
       />
-
       <input
         required
         type="number"

@@ -22,8 +22,7 @@ export const useProductStore = create((set, get) => ({
             toast.success('Product Created')
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
-            console.error('Full error:', error?.response?.data)
-            toast.error(msg)
+                toast.error(msg)
         } finally {
             set({ loading: false })
         }

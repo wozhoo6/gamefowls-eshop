@@ -11,6 +11,12 @@ export const createProduct = async (req, res, next) => {
             .replace(/\s+/g, '-')        // spaces → hyphen
             .replace(/-+/g, '-');        // collapse multiple hyphens
 
+        // Check if there's an active product with the same slug
+        const existingActiveProduct = await Product.findOne({ slug, isActive: true });
+        if (existingActiveProduct) {
+            return res.status(400).json({ success: false, error: 'Duplicate field value entered' });
+        }
+
         const newProduct = await Product.create({ ...req.body, slug, seller: req.user._id })
 
         res.send({ data: newProduct, success: true })
@@ -116,9 +122,26 @@ export const fetchProducts = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
     try {
+        let updateData = { ...req.body };
+
+        if (req.body.name) {
+            const slug = req.body.name.toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9\s-]/g, '') // remove special characters
+                .replace(/\s+/g, '-')        // spaces → hyphen
+                .replace(/-+/g, '-');        // collapse multiple hyphens
+            updateData.slug = slug;
+
+            // Check if there's another active product with the same slug
+            const existingActiveProduct = await Product.findOne({ slug, isActive: true, _id: { $ne: req.params.id } });
+            if (existingActiveProduct) {
+                return res.status(400).json({ success: false, error: 'Duplicate field value entered' });
+            }
+        }
+
         const product = await Product.findByIdAndUpdate(
             req.params.id,
-            { ...req.body },
+            updateData,
             { new: true })
 
         if (!product) return res.status(404).json({ success: false, message: 'Product does not exist' })
@@ -140,6 +163,7 @@ export const deleteProduct = async (req, res, next) => {
         req.params.id,
         {isActive: false}
     )
+    if (product.isFeatured) await redis.del('featuredProducts')
 
     if (!product) return res.status(404).json({ message: "Product not found" });
 

@@ -13,9 +13,7 @@ import LoadingSpinner from "../../components/LoadingSpinner"
 
 const SellerDashboard = () => {
     const {
-        categories,
         loading: categoriesLoading,
-        fetchAllCategories
     } = useCategoryStore();
 
     const {
@@ -39,10 +37,6 @@ const SellerDashboard = () => {
         }
     }, [products, initialProductCount]);
 
-
-    useEffect(() => {
-        fetchAllCategories()
-    }, [fetchAllCategories]);
 
 
     const stats = [
@@ -104,7 +98,7 @@ const SellerDashboard = () => {
                 </div>
                 {/* Product Management */}
                 <div className="mt-12">
-                    <ProductManager categories={categories} />
+                    <ProductManager />
                 </div>
             </>
         </div>

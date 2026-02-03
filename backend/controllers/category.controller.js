@@ -8,7 +8,7 @@ const deleteChildren = async (parentId) => {
     const children = await Category.find({ parentId });
     for (const child of children) {
         await deleteChildren(child._id); // recursive deletion
-        await disableProduct(child._id); // disable the product for this category
+        await disableProducts(child._id); // disable the product for this category
         await Category.findByIdAndDelete(child._id);
     }
 };
@@ -31,6 +31,7 @@ const disableProducts = async (categoryId) => {
 export const createCategory = async (req, res, next) => {
     try {
         const { parentId, name } = req.body
+        console.log(req.body)
 
         if (parentId) {
             const parentExists = await Category.findById(parentId)
@@ -140,6 +141,7 @@ export const deleteCategory = async (req, res, next) => {
         const deletedCategory = await Category.findByIdAndDelete(req.params.id);
 
         await redis.del("categories:tree");
+        await redis.del("featuredProducts");
 
 
         if (!deletedCategory) {

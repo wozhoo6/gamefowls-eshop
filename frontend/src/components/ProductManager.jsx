@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus, Edit, Trash, Trash2 } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore.js";
+import { useCategoryStore } from "../stores/useCategoryStore.js";
 import ProductForm from "./seller/ProductForm.jsx";
+import CategoryForm from "./seller/CategoryForm.jsx";
 import Modal from "./Modal.jsx";
+import DeleteCategoryModal from "./seller/DeleteCategoryModal.jsx";
 
 
 const flattenCategories = (cats) => {
@@ -20,7 +23,7 @@ const flattenCategories = (cats) => {
   return result;
 };
 
-const ProductManager = ({ categories }) => {
+const ProductManager = () => {
   const {
     products,
     fetchSellerProducts,
@@ -31,16 +34,38 @@ const ProductManager = ({ categories }) => {
     deleteProduct
   } = useProductStore();
 
-  const [editingProduct, setEditingProduct] = useState(null);
+  const {
+    createParentCategory,
+    createSubcategory,
+    fetchAllCategories,
+    deleteCategory,
+    categories
+  } = useCategoryStore();
 
+
+  useEffect(() => {
+    fetchAllCategories()
+  }, [fetchAllCategories]);
+
+
+
+  // CATEGORY STATES
+  const [isAddingCategory, setIsAddingCategory] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('All');
+
+  // FORM STATE
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  // FILTER STATE
   const [filters, setFilters] = useState({
     category: "All",
     minPrice: "",
     maxPrice: "",
   });
 
+  // PRODUCT FORM STATES
+  const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     categoryId: "",
@@ -59,7 +84,6 @@ const ProductManager = ({ categories }) => {
     return minMatch && maxMatch;
   });
 
-
   //SUBMIT PRODUCT FORM
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +99,7 @@ const ProductManager = ({ categories }) => {
     setEditingProduct(null);
   };
 
+  // EDITING PRODUCT HANDLER
   const handleEdit = (product) => {
     setEditingProduct(product);
     setFormData({
@@ -86,13 +111,45 @@ const ProductManager = ({ categories }) => {
     setIsFormOpen(true);
   };
 
+  //CONVERT CATEGORY ID INTO CATEGORY NAME
   const getCategoryName = (categoryId) => {
     const category = flattenCategories(categories).find(cat => cat._id === categoryId);
     return category ? category.name : 'Unknown Category';
   };
 
+  //OPEN NEW CATEGORY FORM
+  const handleOpenCategoryForm = () => {
+    setIsAddingCategory(true)
+    setIsFormOpen(true)
+  }
+
+  //CATEGORY HANDLERS
+  const handleAddCategory = async (categoryData) => {
+    categoryData.parentId ? createSubcategory(categoryData) : createParentCategory(categoryData)
+    setIsFormOpen(false);
+    setIsAddingCategory(false);
+    await fetchAllCategories()
+
+  }
+
+  const handleDeleteCategory = async () => {
+    await deleteCategory(selectedCategoryId)
+    setSelectedCategoryId('All')
+    await fetchSellerProducts()
+    await fetchAllCategories()
+    setShowDeleteModal(false)
+  }
+
+  //HANDLE ESC KEY PRESS WHEN MODAL IS OPEN
   useEffect(() => {
-    const handler = (e) => e.key === "Escape" && setIsFormOpen(false);
+    const handler = (e) => {
+      if (e.key === "Escape") {
+        setIsFormOpen(false);
+        setEditingProduct(null);
+        setIsAddingCategory(false);
+        setShowDeleteModal(false);
+      }
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
@@ -124,16 +181,43 @@ const ProductManager = ({ categories }) => {
 
 
       {/* FILTERS */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div>
-          <label className="text-sm text-gray-400">Category</label>
+      <div className="flex flex-wrap items-end gap-4 mb-6">
+        {/* Category */}
+        <div className="flex flex-col gap-2 min-w-[220px]">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-gray-400">Category</label>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleOpenCategoryForm}
+                className="flex items-center gap-1 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-1 rounded-md"
+              >
+                <Plus size={12} />
+                New
+              </button>
+
+              <button
+                type="button"
+                disabled={selectedCategoryId === "All"}
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-1 text-xs border border-red-500 text-red-400 hover:bg-red-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed px-2 py-1 rounded-md"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          </div>
+
           <select
-            className="block bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
-            onChange={(e) =>
-              e.target.value !== "All"
-                ? fetchSellerProductByCategory(e.target.value)
-                : fetchSellerProducts()
-            }
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            value={selectedCategoryId}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCategoryId(value);
+              value !== "All"
+                ? fetchSellerProductByCategory(value)
+                : fetchSellerProducts();
+            }}
           >
             <option value="All">All</option>
             {flattenCategories(categories).map((cat) => (
@@ -144,11 +228,12 @@ const ProductManager = ({ categories }) => {
           </select>
         </div>
 
-        <div>
+        {/* Min Price */}
+        <div className="flex flex-col gap-2 min-w-[140px]">
           <label className="text-sm text-gray-400">Min Price</label>
           <input
             type="number"
-            className="block bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
             value={filters.minPrice}
             onChange={(e) =>
               setFilters({ ...filters, minPrice: e.target.value })
@@ -156,11 +241,12 @@ const ProductManager = ({ categories }) => {
           />
         </div>
 
-        <div>
+        {/* Max Price */}
+        <div className="flex flex-col gap-2 min-w-[140px]">
           <label className="text-sm text-gray-400">Max Price</label>
           <input
             type="number"
-            className="block bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
             value={filters.maxPrice}
             onChange={(e) =>
               setFilters({ ...filters, maxPrice: e.target.value })
@@ -232,25 +318,45 @@ const ProductManager = ({ categories }) => {
       </div>
 
 
+      <DeleteCategoryModal
+        open={showDeleteModal}
+        setShowDeleteModal={setShowDeleteModal}
+        handleDeleteCategory={handleDeleteCategory}
+      />
+
       <Modal open={isFormOpen} onClose={() => setIsFormOpen(false)}>
         <h3 className="text-xl font-bold mb-4">
-          {editingProduct ? "Edit Product" : "Add Product"}
+          {isAddingCategory ? "Add Category" : editingProduct ? "Edit Product" : "Add Product"}
         </h3>
 
-        <ProductForm
-          categories={flattenCategories(categories)}
-          formData={formData}
-          setFormData={setFormData}
-          editingProduct={editingProduct}
-          onSubmit={(e) => {
-            handleSubmit(e);
-            setIsFormOpen(false);
-          }}
-          onCancel={() => {
-            setIsFormOpen(false);
-            setEditingProduct(null);
-          }}
-        />
+        {isAddingCategory ?
+          <CategoryForm
+            categories={categories}
+            onSubmit={(data) => {
+              handleAddCategory(data)
+            }}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setIsAddingCategory(false);
+            }}
+          />
+          : <ProductForm
+            categories={flattenCategories(categories)}
+            formData={formData}
+            setFormData={setFormData}
+            editingProduct={editingProduct}
+            onSubmit={(e) => {
+              handleSubmit(e);
+              setIsFormOpen(false);
+              setIsAddingCategory(false);
+            }}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setEditingProduct(null);
+              setIsAddingCategory(false);
+            }}
+          />
+        }
       </Modal>
     </div>
   );

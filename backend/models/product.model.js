@@ -5,61 +5,60 @@ const productSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     slug: {
       type: String,
       required: true,
       lowercase: true,
-      unique: true
     },
 
     description: {
-      type: String
+      type: String,
     },
 
     price: {
       type: Number,
       required: true,
-      min: 0
+      min: 0,
     },
 
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      required: true
+      required: true,
     },
 
     seller: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     stock: {
       type: Number,
-      default: 1
+      default: 1,
     },
 
-    images: [
-      {
-        type: String
-      }
-    ],
+    images: [{ type: String }],
 
     isActive: {
       type: Boolean,
-      default: true
+      default: true,
     },
+
     isFeatured: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
+/// Index on slug for faster queries, but no uniqueness
+productSchema.index({ slug: 1 });
+
 const Product = mongoose.model("Product", productSchema);
 
-export default Product
+export default Product;
