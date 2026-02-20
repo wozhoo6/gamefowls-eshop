@@ -107,6 +107,7 @@ const ProductManager = () => {
       description: product.description,
       categoryId: product.categoryId,
       price: product.price,
+      stock: product.stock
     });
     setIsFormOpen(true);
   };
@@ -155,11 +156,10 @@ const ProductManager = () => {
   }, []);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-red-600">
-          Product Management
-        </h2>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 md:p-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 md:gap-0">
+        <h2 className="text-2xl font-bold text-red-600">Product Management</h2>
 
         <button
           onClick={() => {
@@ -167,34 +167,30 @@ const ProductManager = () => {
             setFormData({
               name: "",
               description: "",
-              categoryId: categories[0]._id,
+              categoryId: categories[0]?._id || "",
               price: "",
             });
             setIsFormOpen(true);
           }}
           className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md font-bold"
         >
-          <Plus size={16} />
-          Add Product
+          <Plus size={16} /> Add Product
         </button>
       </div>
 
-
-      {/* FILTERS */}
-      <div className="flex flex-wrap items-end gap-4 mb-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-4 mb-6">
         {/* Category */}
-        <div className="flex flex-col gap-2 min-w-[220px]">
+        <div className="flex flex-col gap-2 w-full sm:w-auto min-w-[180px]">
           <div className="flex items-center justify-between">
             <label className="text-sm text-gray-400">Category</label>
-
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleOpenCategoryForm}
                 className="flex items-center gap-1 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold px-2 py-1 rounded-md"
               >
-                <Plus size={12} />
-                New
+                <Plus size={12} /> New
               </button>
 
               <button
@@ -209,7 +205,7 @@ const ProductManager = () => {
           </div>
 
           <select
-            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm w-full"
             value={selectedCategoryId}
             onChange={(e) => {
               const value = e.target.value;
@@ -229,40 +225,37 @@ const ProductManager = () => {
         </div>
 
         {/* Min Price */}
-        <div className="flex flex-col gap-2 min-w-[140px]">
+        <div className="flex flex-col gap-2 w-full sm:w-auto min-w-[120px]">
           <label className="text-sm text-gray-400">Min Price</label>
           <input
             type="number"
-            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm w-full"
             value={filters.minPrice}
-            onChange={(e) =>
-              setFilters({ ...filters, minPrice: e.target.value })
-            }
+            onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
           />
         </div>
 
         {/* Max Price */}
-        <div className="flex flex-col gap-2 min-w-[140px]">
+        <div className="flex flex-col gap-2 w-full sm:w-auto min-w-[120px]">
           <label className="text-sm text-gray-400">Max Price</label>
           <input
             type="number"
-            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm w-full"
             value={filters.maxPrice}
-            onChange={(e) =>
-              setFilters({ ...filters, maxPrice: e.target.value })
-            }
+            onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
           />
         </div>
       </div>
 
-      {/* PRODUCT TABLE */}
+      {/* Product Table */}
       <div className="overflow-x-auto mb-8">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[600px] md:min-w-full">
           <thead>
             <tr className="border-b border-zinc-800 text-gray-400">
               <th className="text-left py-2">Name</th>
-              <th>Category</th>
-              <th>Price</th>
+              <th className="text-center">Category</th>
+              <th className="text-center">Price</th>
+              <th className="text-center">Stock</th> {/* New column */}
               <th className="text-right">Actions</th>
             </tr>
           </thead>
@@ -270,24 +263,18 @@ const ProductManager = () => {
             {filteredProducts.map((product) => (
               <tr key={product._id} className="border-b border-zinc-800">
                 <td className="py-3">{product.name}</td>
-
-                <td className="text-center">
-                  {getCategoryName(product.categoryId)}
-                </td>
-
+                <td className="text-center">{getCategoryName(product.categoryId)}</td>
                 <td className="text-center">P{product.price}</td>
-
+                <td className="text-center">{product.stock}</td> {/* Display stock here */}
                 <td className="text-right">
-                  <div className="flex justify-end items-center gap-3">
+                  <div className="flex flex-wrap justify-end items-center gap-2 md:gap-3">
                     {/* Feature Toggle */}
                     <button
                       onClick={() => toggleFeature(product._id, !product.isFeatured)}
-                      className={`px-2 py-1 text-xs rounded transition
-                          ${product.isFeatured
+                      className={`px-2 py-1 text-xs rounded transition ${product.isFeatured
                           ? "bg-green-500 text-black hover:bg-green-400"
                           : "bg-zinc-800 text-green-400 hover:bg-zinc-700"
-                        }
-                         `}
+                        }`}
                     >
                       {product.isFeatured ? "Featured" : "Feature"}
                     </button>
@@ -295,19 +282,17 @@ const ProductManager = () => {
                     {/* Edit */}
                     <button
                       onClick={() => handleEdit(product)}
-                      className="text-amber-500 hover:text-amber-400 flex items-center gap-1"
+                      className="text-amber-500 hover:text-amber-400 flex items-center gap-1 text-xs sm:text-sm"
                     >
-                      <Edit size={14} />
-                      Edit
+                      <Edit size={14} /> Edit
                     </button>
 
                     {/* Delete */}
                     <button
                       onClick={() => deleteProduct(product._id)}
-                      className="text-red-500 hover:text-red-400 flex items-center gap-1"
+                      className="text-red-500 hover:text-red-400 flex items-center gap-1 text-xs sm:text-sm"
                     >
-                      <Trash size={14} />
-                      Delete
+                      <Trash size={14} /> Delete
                     </button>
                   </div>
                 </td>
@@ -317,7 +302,6 @@ const ProductManager = () => {
         </table>
       </div>
 
-
       <DeleteCategoryModal
         open={showDeleteModal}
         setShowDeleteModal={setShowDeleteModal}
@@ -326,21 +310,24 @@ const ProductManager = () => {
 
       <Modal open={isFormOpen} onClose={() => setIsFormOpen(false)}>
         <h3 className="text-xl font-bold mb-4">
-          {isAddingCategory ? "Add Category" : editingProduct ? "Edit Product" : "Add Product"}
+          {isAddingCategory
+            ? "Add Category"
+            : editingProduct
+              ? "Edit Product"
+              : "Add Product"}
         </h3>
 
-        {isAddingCategory ?
+        {isAddingCategory ? (
           <CategoryForm
             categories={categories}
-            onSubmit={(data) => {
-              handleAddCategory(data)
-            }}
+            onSubmit={(data) => handleAddCategory(data)}
             onCancel={() => {
               setIsFormOpen(false);
               setIsAddingCategory(false);
             }}
           />
-          : <ProductForm
+        ) : (
+          <ProductForm
             categories={flattenCategories(categories)}
             formData={formData}
             setFormData={setFormData}
@@ -356,7 +343,7 @@ const ProductManager = () => {
               setIsAddingCategory(false);
             }}
           />
-        }
+        )}
       </Modal>
     </div>
   );

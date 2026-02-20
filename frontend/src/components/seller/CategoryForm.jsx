@@ -30,7 +30,7 @@ export default function CategoryForm({
                     Categories
                 </h3>
 
-                <button
+                {categories.length !== 0 && (<button
                     type="button"
                     onClick={() => {
                         setAddingSubCategory(prev => !prev);
@@ -44,6 +44,7 @@ export default function CategoryForm({
                     <Plus size={14} />
                     {!addingSubCategory ? 'Add Subcategory' : 'Add new'}
                 </button>
+                )}
             </div>
 
             {/* Subcategory section */}

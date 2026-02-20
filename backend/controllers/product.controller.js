@@ -28,7 +28,6 @@ export const createProduct = async (req, res, next) => {
 export const fetchProductsBySeller = async (req, res, next) => {
     try {
         const products = await Product.find({ seller: req.user._id, isActive: true })
-
         res.send({ success: true, data: products });
     } catch (error) {
         next(error)
@@ -103,7 +102,7 @@ export const fetchProducts = async (req, res, next) => {
         }
 
 
-        const products = await Product.find(filter);
+        const products = await Product.find(filter).populate('seller', "name address contactNumber");
 
         if (isFeatured && !categoryId) {
             await redis.set(
@@ -118,7 +117,19 @@ export const fetchProducts = async (req, res, next) => {
     }
 };
 
+export const fetchProductById = async (req, res, next) => {
 
+    try {
+        const product = await Product.findById(req.params.id).populate('seller', "name address contactNumber")
+
+        if (!product) return res.status(404).json({ message: "Product does not exist" })
+
+        res.send({ success: true, data: product });
+
+    } catch (error) {
+        next(error);
+    }
+}
 
 export const updateProduct = async (req, res, next) => {
     try {
@@ -161,7 +172,7 @@ export const updateProduct = async (req, res, next) => {
 export const deleteProduct = async (req, res, next) => {
     const product = await Product.findByIdAndUpdate(
         req.params.id,
-        {isActive: false}
+        { isActive: false }
     )
     if (product.isFeatured) await redis.del('featuredProducts')
 

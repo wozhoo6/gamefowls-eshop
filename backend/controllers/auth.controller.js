@@ -20,7 +20,7 @@ const generateToken = (userId) => {
 
 //storing the refresh token in redis cache for faster access in the future, valid for 7 days
 const storeRefreshToken = async (userId, refreshToken) => {
-    redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60)
+    await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60)
 }
 
 
@@ -105,7 +105,6 @@ export const logout = async (req, res, next) => {
         if (refreshToken) {
             const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
             await redis.del(`refresh_token:${decoded.userId}`)
-
         }
 
         res.clearCookie('accessToken')
@@ -154,6 +153,22 @@ export const getUserProfile = async (req, res, next) => {
     try {
         res.json({ data: req.user })
     } catch (error) {
-       next(error)
+        next(error)
+    }
+}
+
+
+export const getSellerProfile = async (req, res, next) => {
+    try {
+        const sellerId = req.params.id
+
+        const seller = await User.findById(sellerId)
+            .select('name contactNumber address');
+
+        if(!seller) return res.status(404).json({ message: 'User doesn\'t exist' })
+
+        res.send({ data: seller })
+    } catch (error) {
+        next(error)
     }
 }

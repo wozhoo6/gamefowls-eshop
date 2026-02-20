@@ -1,10 +1,17 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const ProductCard = ({ product }) => {
+    const navigate = useNavigate()
+    
+    const goToProduct = () => {
+        navigate(`/products/${product.slug}`, { state: { id: product._id } })
+    }
+
     return (
         <div
-            key={product.id}
-            className="bg-zinc-900 border border-zinc-800 hover:border-red-700 rounded-lg overflow-hidden transition"
+            onClick={goToProduct}
+            className="bg-zinc-900 border border-zinc-800 hover:border-red-700 rounded-lg overflow-hidden transition cursor-pointer hover:shadow-lg"
         >
             <img
                 // src={product.image}
@@ -16,11 +23,18 @@ const ProductCard = ({ product }) => {
                 <h4 className="font-semibold mb-1">
                     {product.name}
                 </h4>
+
                 <p className="text-amber-500 font-bold mb-4">
                     P {product.price}
                 </p>
 
-                <button className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-md font-semibold">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation() // 🚀 prevents card click
+                        goToProduct()
+                    }}
+                    className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-md font-semibold cursor-pointer"
+                >
                     View Details
                 </button>
             </div>

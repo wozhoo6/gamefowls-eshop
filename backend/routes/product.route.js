@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     createProduct,
     fetchProducts,
+    fetchProductById,
     updateProduct,
     deleteProduct,
     fetchProductsBySeller,
@@ -18,6 +19,7 @@ router.post('/', protectRoute, sellerRouter, createProduct)
 router.get('/', validateQuery, fetchProducts)
 router.get('/seller', protectRoute, sellerRouter, fetchProductsBySeller)
 router.get('/seller/:category', protectRoute, sellerRouter, fetchSellerProductByCategory)
+router.get('/:id', fetchProductById)
 
 
 

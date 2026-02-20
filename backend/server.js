@@ -8,6 +8,8 @@ import errorMiddleware from "./middlewares/middlewares.js";
 import authRoutes from './routes/auth.route.js'
 import categoryRoutes from './routes/category.route.js'
 import productRoutes from './routes/product.route.js'
+import cartRoutes from './routes/cart.route.js'
+
 
 
 dotenv.config()
@@ -23,12 +25,14 @@ app.use(cookieParser())
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/category', categoryRoutes)
 app.use('/api/v1/products', productRoutes)
+app.use('/api/v1/cart', cartRoutes)
+
 
 
 
 app.use(errorMiddleware)
 
-app.listen(PORT, async () => {
+app.listen(PORT, "0.0.0.0", async () => {
     console.log(`Server running on port ${PORT}`)
     await connectDB()
 })

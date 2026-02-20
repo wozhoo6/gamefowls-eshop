@@ -22,7 +22,57 @@ export const useProductStore = create((set, get) => ({
             toast.success('Product Created')
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
-                toast.error(msg)
+            toast.error(msg)
+        } finally {
+            set({ loading: false })
+        }
+    },
+
+    fetchAllActiveProducts: async () => {
+        set({ loading: true })
+
+        try {
+            const res = await axios.get('/products')
+            set({ products: res.data.data })
+        } catch (error) {
+            const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
+            console.error('Full error:', error?.response?.data)
+            toast.error(msg)
+        } finally {
+            set({ loading: false })
+        }
+    },
+
+    fetchProductsByCategory: async (categoryId) => {
+        set({ loading: true })
+
+        try {
+            const res = await axios.get(`/products/?category=${categoryId}`)
+            set({ products: res.data.data })
+        } catch (error) {
+            const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
+            console.error('Full error:', error?.response?.data)
+            toast.error(msg)
+        } finally {
+            set({ loading: false })
+        }
+    },
+
+    fetchProductById: async (productId) => {
+        // When loading a single product, the API returns an object.
+        // We keep `products` as an array everywhere else, so convert the
+        // response into a one-element array to avoid calling array methods
+        // on non-array values (see ProductDetailsPage).
+        set({ loading: true })
+
+        try {
+            const res = await axios.get(`/products/${productId}`)
+            const productData = res.data.data
+            // if somehow the API returns an array already, just use it
+            set({ products: Array.isArray(productData) ? productData : [productData] })
+        } catch (error) {
+            const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
+            toast.error(msg)
         } finally {
             set({ loading: false })
         }
@@ -51,7 +101,7 @@ export const useProductStore = create((set, get) => ({
             set({ products: res.data.data })
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
-            console.error('Full error:', error?.response?.data)
+            console.error('Full error:',msg)
             toast.error(msg)
         } finally {
             set({ loading: false })
@@ -128,7 +178,7 @@ export const useProductStore = create((set, get) => ({
             toast.error(msg)
         } finally {
             set({ loading: false })
-        } 
+        }
     }
 }))
 

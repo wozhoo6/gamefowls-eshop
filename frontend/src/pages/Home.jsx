@@ -2,15 +2,20 @@ import React, { useEffect } from "react";
 import { Shield, Swords } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import { useProductStore } from "../stores/useProductStore.js";
+import { useNavigate } from "react-router-dom";
 
 
 
 const Home = () => {
+  const navigate = useNavigate();
+
   const { fetchFeaturedProducts, featuredProducts } = useProductStore()
+
 
   useEffect(() => {
     fetchFeaturedProducts()
   }, [fetchFeaturedProducts])
+
 
 
   return (
@@ -25,7 +30,9 @@ const Home = () => {
             Premium breeds, top-tier equipment, and trusted suppliers for serious
             competitors.
           </p>
-          <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-md font-bold tracking-wide">
+          <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-md font-bold tracking-wide"
+            onClick={() => navigate('/products')}
+          >
             ENTER MARKET
           </button>
         </div>

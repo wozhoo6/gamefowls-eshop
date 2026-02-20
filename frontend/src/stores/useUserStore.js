@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { create } from 'zustand'
 
 export const useUserStore = create((set, get) => ({
-    user: [],
+    user: null,
     loading: false,
     checkingAuth: true,
 
@@ -46,8 +46,22 @@ export const useUserStore = create((set, get) => ({
             set({ user: res.data.data, checkingAuth: false })
         } catch (error) {
             set({ user: null, checkingAuth: false })
-        }
+            }
     },
+
+    fetchSellerName: async (sellerId) => {
+        set({ checkingAuth: true })
+
+        const res = await axios.get(`/auth/seller/${sellerId}`)
+        const seller = res.data.data
+        return (seller.name)
+
+    },
+
+    logout: async () => {
+        await axios.post("/auth/logout");
+        set({ user: null });
+    }
 }))
 
 

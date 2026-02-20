@@ -10,6 +10,7 @@ export default function ProductForm({
 }) {
 
 
+  console.log(formData)
   return (
     <form
       onSubmit={onSubmit}
@@ -60,6 +61,19 @@ export default function ProductForm({
           setFormData({ ...formData, price: e.target.value })
         }
       />
+
+
+      <input
+        type="number"
+        placeholder="Stock"
+        className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2"
+        value={formData.stock}
+        onChange={(e) => {
+          // TODO: implement stock update logic
+          setFormData({ ...formData, stock: e.target.value });
+        }}
+      />
+
 
       <div className="flex gap-2 md:col-span-4">
         <button
