@@ -17,8 +17,8 @@ router.post('/', protectRoute, sellerRouter, createProduct)
 
 
 router.get('/', validateQuery, fetchProducts)
-router.get('/seller', protectRoute, sellerRouter, fetchProductsBySeller)
-router.get('/seller/:category', protectRoute, sellerRouter, fetchSellerProductByCategory)
+router.get('/seller/:sellerId',fetchProductsBySeller)
+router.get('/seller/product/:category', protectRoute, sellerRouter, fetchSellerProductByCategory)
 router.get('/:id', fetchProductById)
 
 

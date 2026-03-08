@@ -165,10 +165,25 @@ export const getSellerProfile = async (req, res, next) => {
         const seller = await User.findById(sellerId)
             .select('name contactNumber address');
 
-        if(!seller) return res.status(404).json({ message: 'User doesn\'t exist' })
+        if (!seller) return res.status(404).json({ message: 'User doesn\'t exist' })
 
         res.send({ data: seller })
     } catch (error) {
         next(error)
     }
 }
+
+export const fetchAllSellers = async (req, res, next) => {
+    try {
+        const sellers = await User.find({ role: 'seller' })
+            .select('name email address contactNumber createdAt');
+
+        res.status(200).json({
+            success: true,
+            data: sellers
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};

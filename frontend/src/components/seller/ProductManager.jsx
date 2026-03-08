@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Edit, Trash, Trash2 } from "lucide-react";
-import { useProductStore } from "../stores/useProductStore.js";
-import { useCategoryStore } from "../stores/useCategoryStore.js";
-import ProductForm from "./seller/ProductForm.jsx";
-import CategoryForm from "./seller/CategoryForm.jsx";
-import Modal from "./Modal.jsx";
-import DeleteCategoryModal from "./seller/DeleteCategoryModal.jsx";
+import { useProductStore } from "../../stores/useProductStore.js";
+import { useCategoryStore } from "../../stores/useCategoryStore.js";
+import { useUserStore } from "../../stores/useUserStore.js";
+import ProductForm from "../seller/ProductForm.jsx";
+import CategoryForm from "../seller/CategoryForm.jsx";
+import Modal from "../Modal.jsx";
+import DeleteCategoryModal from "../seller/DeleteCategoryModal.jsx";
 
 
 const flattenCategories = (cats) => {
@@ -41,6 +42,8 @@ const ProductManager = () => {
     deleteCategory,
     categories
   } = useCategoryStore();
+
+  const { user } = useUserStore()
 
 
   useEffect(() => {
@@ -107,7 +110,8 @@ const ProductManager = () => {
       description: product.description,
       categoryId: product.categoryId,
       price: product.price,
-      stock: product.stock
+      stock: product.stock,
+      images: product.images
     });
     setIsFormOpen(true);
   };
@@ -136,7 +140,7 @@ const ProductManager = () => {
   const handleDeleteCategory = async () => {
     await deleteCategory(selectedCategoryId)
     setSelectedCategoryId('All')
-    await fetchSellerProducts()
+    await fetchSellerProducts(user._id)
     await fetchAllCategories()
     setShowDeleteModal(false)
   }
@@ -212,7 +216,7 @@ const ProductManager = () => {
               setSelectedCategoryId(value);
               value !== "All"
                 ? fetchSellerProductByCategory(value)
-                : fetchSellerProducts();
+                : fetchSellerProducts(user._id);
             }}
           >
             <option value="All">All</option>
@@ -272,13 +276,12 @@ const ProductManager = () => {
                     <button
                       onClick={() => toggleFeature(product._id, !product.isFeatured)}
                       className={`px-2 py-1 text-xs rounded transition ${product.isFeatured
-                          ? "bg-green-500 text-black hover:bg-green-400"
-                          : "bg-zinc-800 text-green-400 hover:bg-zinc-700"
+                        ? "bg-green-500 text-black hover:bg-green-400"
+                        : "bg-zinc-800 text-green-400 hover:bg-zinc-700"
                         }`}
                     >
                       {product.isFeatured ? "Featured" : "Feature"}
                     </button>
-
                     {/* Edit */}
                     <button
                       onClick={() => handleEdit(product)}

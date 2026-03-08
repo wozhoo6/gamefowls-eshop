@@ -49,11 +49,13 @@ export const addToCart = async (req, res, next) => {
         }
 
         await user.save();
+        const populatedUser = await User.findById(req.user._id)
+            .populate("cartItems.product");
 
         res.send({
             success: true,
             message: "Product added to cart",
-            data: user.cartItems
+            data: populatedUser.cartItems
         });
 
     } catch (error) {
@@ -70,7 +72,19 @@ export const updateCartItem = async (req, res, next) => {
         const { productId, quantity } = req.body;
 
         if (quantity <= 0) {
-            return res.status(400).json({ success: false, message: "Quantity must be greater than 0" });
+            const user = await User.findById(req.user._id);
+            user.cartItems = user.cartItems.filter(
+                item => item.product.toString() !== productId
+            );
+            await user.save();
+            const updatedUser = await User.findById(req.user._id)
+                .populate("cartItems.product");
+
+            return res.json({
+                success: true,
+                message: "Item removed from cart",
+                data: updatedUser.cartItems
+            });
         }
 
         const user = await User.findById(req.user._id);
@@ -86,11 +100,15 @@ export const updateCartItem = async (req, res, next) => {
         item.quantity = quantity;
 
         await user.save();
+        const updatedUser = await User.findById(req.user._id)
+            .populate("cartItems.product");
+
+
 
         res.send({
             success: true,
             message: "Cart updated",
-            data: user.cartItems
+            data: updatedUser.cartItems
         });
 
     } catch (error) {
@@ -109,15 +127,18 @@ export const removeCartItem = async (req, res, next) => {
         const user = await User.findById(req.user._id);
 
         user.cartItems = user.cartItems.filter(
-            item => item.product.toString() !== productId
+            item => item._id.toString() !== productId
         );
 
         await user.save();
 
-        res.send({
+        const updatedUser = await User.findById(req.user._id)
+            .populate("cartItems.product");
+
+        res.json({
             success: true,
             message: "Item removed from cart",
-            data: user.cartItems
+            data: updatedUser.cartItems
         });
 
     } catch (error) {
@@ -145,3 +166,26 @@ export const clearCart = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+/**
+ * @desc    Get cart length
+ */
+export const getCartLength = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        const cartLength = user.cartItems.length || 0
+
+        res.send({
+            success: true,
+            data: cartLength
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+

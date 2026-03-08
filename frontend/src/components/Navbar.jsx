@@ -15,7 +15,7 @@ import AccountDropdown from "./AccountDropdown.jsx";
 
 const Navbar = () => {
   const { user } = useUserStore();
-  const { cart } = useCartStore();
+  const { cartLength } = useCartStore();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const Navbar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/equipment" className="hover:text-red-500">
+              <Link to="/suppliers" className="hover:text-red-500">
                 Suppliers
               </Link>
             </li>
@@ -82,7 +82,7 @@ const Navbar = () => {
                 <ShoppingCart size={18} />
                 <span className="text-sm font-semibold">Cart</span>
                 <span className="absolute -top-2 -right-2 bg-amber-500 text-black text-xs font-bold px-2 rounded-full">
-                  {cart.length}
+                  {cartLength}
                 </span>
               </button>
             </>
@@ -138,7 +138,7 @@ const Navbar = () => {
               <Link to="/products" onClick={() => setMobileOpen(false)}>
                 Products
               </Link>
-              <Link to="/equipment" onClick={() => setMobileOpen(false)}>
+              <Link to="/suppliers" onClick={() => setMobileOpen(false)}>
                 Suppliers
               </Link>
             </>

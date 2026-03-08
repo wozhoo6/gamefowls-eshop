@@ -93,11 +93,11 @@ export const useProductStore = create((set, get) => ({
         }
     },
 
-    fetchSellerProducts: async () => {
+    fetchSellerProducts: async (sellerId) => {
         set({ loading: true })
 
         try {
-            const res = await axios.get('/products/seller')
+            const res = await axios.get(`/products/seller/${sellerId}`)
             set({ products: res.data.data })
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'
@@ -110,7 +110,7 @@ export const useProductStore = create((set, get) => ({
 
     fetchSellerProductByCategory: async (categoryId) => {
         try {
-            const res = await axios.get(`/products/seller/${categoryId}`)
+            const res = await axios.get(`/products/seller/product/${categoryId}`)
             set({ products: res.data.data })
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'An error occurred'

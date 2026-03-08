@@ -21,10 +21,14 @@ import LoginPage from "./pages/LoginPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import CartPage from "./pages/CartPage.jsx";
+import SuppliersPage from "./pages/SuppliersPage.jsx";
+
+import SellerProducts from "./pages/seller/SellerProducts.jsx";
+
 
 const App = () => {
   const { user, checkAuth, checkingAuth } = useUserStore()
-  const { fetchCart, cart } = useCartStore();
+  const { getCartLength, cart } = useCartStore();
   const { fetchSellerProducts } = useProductStore()
 
   useEffect(() => {
@@ -34,13 +38,13 @@ const App = () => {
 
   useEffect(() => {
     if (user) {
-      fetchCart()
+      getCartLength()
     }
-  }, [fetchCart, user])
+  }, [getCartLength, user])
 
   useEffect(() => {
     if (user?.role === "seller") {
-      fetchSellerProducts()
+      fetchSellerProducts(user._id)
     }
   }, [fetchSellerProducts, user])
 
@@ -63,8 +67,12 @@ const App = () => {
 
         <Route path="/products" element={<ProductsPage />} />
 
+        <Route path="/suppliers" element={<SuppliersPage />} />
+        <Route path="/suppliers/:id" element={<SellerProducts />} />
+
+
         <Route path="/products/:slug" element={<ProductDetailsPage />} />
-        <Route path="/cart" element={!user ? <Navigate to='/' />: <CartPage />} />
+        <Route path="/cart" element={!user ? <Navigate to='/' /> : <CartPage />} />
 
 
 

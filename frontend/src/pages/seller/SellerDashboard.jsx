@@ -5,9 +5,10 @@ import {
     DollarSign,
     ShieldCheck,
 } from "lucide-react";
-import ProductManager from "../../components/ProductManager";
+import ProductManager from "../../components/seller/ProductManager";
 import { useCategoryStore } from "../../stores/useCategoryStore";
 import { useProductStore } from "../../stores/useProductStore";
+import { useUserStore } from "../../stores/useUserStore";
 import LoadingSpinner from "../../components/LoadingSpinner"
 
 
@@ -20,15 +21,17 @@ const SellerDashboard = () => {
         products,
         fetchSellerProducts,
         loading: producLoading,
-        fetchSellerProductByCategory
+        
     } = useProductStore();
+
+    const { user } = useUserStore()
 
     const loading = categoriesLoading || producLoading;
 
     const [initialProductCount, setInitialProductCount] = useState(0);
 
     useEffect(() => {
-        fetchSellerProducts()
+        fetchSellerProducts(user._id)
     }, [fetchSellerProducts])
 
     useEffect(() => {

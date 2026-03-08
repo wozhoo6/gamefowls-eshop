@@ -1,26 +1,31 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Minus, Plus, Trash } from "lucide-react";
 import { useCartStore } from "../stores/useCartSore";
 
 function CartPage() {
-  const { cart } = useCartStore();
+  const { cart,
+    removeCartItem,
+    fetchCart,
+    loading,
+    updateCartItem,
+    getCartTotal,
+    cartLength
+  } = useCartStore();
 
-  const total = useMemo(() => {
-    if (!cart) return 0;
-    return cart.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0
-    );
-  }, [cart]);
+
+  useEffect(() => {
+    fetchCart()
+  }, [fetchCart])
 
   // 🔹 Loading State
-  if (!cart) {
+  if (loading) {
     return (
       <div className="bg-zinc-950 min-h-screen flex items-center justify-center text-gray-400">
         Loading cart...
       </div>
     );
   }
+
 
   return (
     <div className="bg-zinc-950 text-gray-200 min-h-screen px-4 py-6">
@@ -70,7 +75,9 @@ function CartPage() {
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-3 mt-2">
-                      <button className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded">
+                      <button className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded"
+                        onClick={() => updateCartItem(item.product._id, item.quantity - 1)}
+                      >
                         <Minus size={16} />
                       </button>
 
@@ -78,7 +85,9 @@ function CartPage() {
                         {item.quantity}
                       </span>
 
-                      <button className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded">
+                      <button className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded"
+                        onClick={() => updateCartItem(item.product._id, item.quantity + 1)}
+                      >
                         <Plus size={16} />
                       </button>
                     </div>
@@ -94,7 +103,9 @@ function CartPage() {
                     ).toLocaleString()}
                   </p>
 
-                  <button className="flex items-center gap-1 text-red-500 hover:text-red-400 text-sm">
+                  <button className="flex items-center gap-1 text-red-500 hover:text-red-400 text-sm"
+                    onClick={() => removeCartItem(item._id)}
+                  >
                     <Trash size={16} />
                     Remove
                   </button>
@@ -111,13 +122,13 @@ function CartPage() {
 
             <div className="flex justify-between text-gray-400 mb-2">
               <span>Items</span>
-              <span>{cart.length}</span>
+              <span>{cartLength}</span>
             </div>
 
             <div className="flex justify-between text-gray-400 mb-4">
               <span>Total</span>
               <span className="font-semibold text-white">
-                ₱{total.toLocaleString()}
+                ₱{getCartTotal()}
               </span>
             </div>
 
